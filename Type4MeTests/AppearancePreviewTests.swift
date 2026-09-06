@@ -5,7 +5,7 @@ import XCTest
 final class AppearancePreviewTests: XCTestCase {
 
     func testRecordingTheme_allCases() {
-        XCTAssertEqual(RecordingTheme.allCases.count, 2)
+        XCTAssertEqual(RecordingTheme.allCases.count, 3)
         XCTAssertEqual(RecordingTheme.dark.rawValue, "dark")
         XCTAssertEqual(RecordingTheme.light.rawValue, "light")
         XCTAssertEqual(RecordingTheme.storageKey, "tf_recordingTheme")
@@ -13,6 +13,27 @@ final class AppearancePreviewTests: XCTestCase {
 
         XCTAssertEqual(RecordingTheme.dark.displayName, L("暗色", "Dark"))
         XCTAssertEqual(RecordingTheme.light.displayName, L("明亮", "Light"))
+    }
+
+    func testRecordingThemeResolvesSystemWithoutChangingExplicitPreferences() {
+        XCTAssertEqual(RecordingTheme.system.resolved(systemIsDark: false), .light)
+        XCTAssertEqual(RecordingTheme.system.resolved(systemIsDark: true), .dark)
+        XCTAssertEqual(RecordingTheme.system.resolved(systemIsDark: false), .light)
+        for isDark in [false, true] {
+            XCTAssertEqual(RecordingTheme.light.resolved(systemIsDark: isDark), .light)
+            XCTAssertEqual(RecordingTheme.dark.resolved(systemIsDark: isDark), .dark)
+        }
+        XCTAssertNil(RecordingTheme.system.appearance)
+        XCTAssertEqual(RecordingTheme.system.rawValue, "system")
+        XCTAssertEqual(RecordingTheme.defaultValue, .dark)
+    }
+
+    func testRecordingThemeLabelsSwitchBetweenChineseAndEnglish() {
+        XCTAssertEqual(RecordingTheme.system.displayName(language: .zh), "跟随系统")
+        XCTAssertEqual(RecordingTheme.system.displayName(language: .en), "Follow System")
+        XCTAssertEqual(RecordingTheme.system.displayName(language: .zh), "跟随系统")
+        XCTAssertEqual(RecordingTheme.dark.displayName(language: .en), "Dark")
+        XCTAssertEqual(RecordingTheme.light.displayName(language: .en), "Light")
     }
 
     func testRecordingIndicatorStyle_allCases() {

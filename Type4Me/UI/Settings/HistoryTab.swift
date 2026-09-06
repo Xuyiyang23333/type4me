@@ -709,7 +709,7 @@ struct HistoryTab: View {
                 } label: {
                     Text(L("应用", "Apply"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .padding(.horizontal, 12)
                         .frame(height: 30)
                         .background(
@@ -818,7 +818,7 @@ struct HistoryTab: View {
                 Button(action: exportCSV) {
                     Text(L("导出 CSV", "Export CSV"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .padding(.horizontal, 12)
                         .frame(height: 30)
                         .background(

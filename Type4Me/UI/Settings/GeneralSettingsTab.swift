@@ -653,7 +653,7 @@ struct GeneralSettingsTab: View, SettingsCardHelpers {
                 Button { action() } label: {
                     Text(L("授权", "Grant"))
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
                         .background(RoundedRectangle(cornerRadius: 6).fill(TF.settingsAccentAmber))
@@ -785,7 +785,7 @@ private struct MicrophonePrioritySheet: View {
                 } label: {
                     Text(L("保存", "Save"))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 7)
                         .background(
@@ -836,7 +836,7 @@ private struct MicrophonePrioritySheet: View {
                 if let selectedIndex {
                     Text("\(selectedIndex + 1)")
                         .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .frame(width: 22, height: 22)
                         .background(Circle().fill(TF.settingsNavActive))
                 } else {

@@ -128,7 +128,7 @@ struct SettingsTooltipBubble: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    .stroke(TF.settingsBorder, lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
             .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
@@ -444,7 +444,7 @@ extension SettingsCardHelpers {
                 .labelsHidden()
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                .tint(.black)
+                .tint(TF.settingsNavActive)
                 .disabled(!isEnabled)
         }
         .opacity(isEnabled ? 1.0 : 0.45)
@@ -617,7 +617,7 @@ extension SettingsCardHelpers {
                 } label: {
                     Text(option.label)
                         .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                        .foregroundStyle(isSelected ? .white : TF.settingsText)
+                        .foregroundStyle(isSelected ? TF.settingsOnStrong : TF.settingsText)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(
@@ -639,9 +639,10 @@ extension SettingsCardHelpers {
     /// Compact Apple-style inline segmented picker for 2 (or few) options in a settings option row.
     func settingsInlineSegmentedPicker(
         selection: Binding<String>,
-        options: [(value: String, label: String)]
+        options: [(value: String, label: String)],
+        segmentWidth: CGFloat? = nil
     ) -> some View {
-        SettingsInlineSegmentedPicker(selection: selection, options: options)
+        SettingsInlineSegmentedPicker(selection: selection, options: options, segmentWidth: segmentWidth)
     }
 
     func primaryButton(
@@ -659,7 +660,7 @@ extension SettingsCardHelpers {
                 Text(title)
                     .font(.system(size: 12, weight: .semibold))
             }
-            .foregroundStyle(.white)
+            .foregroundStyle(TF.settingsOnStrong)
             .padding(.horizontal, 14)
             .padding(.vertical, 7)
             .background(
@@ -697,7 +698,7 @@ extension SettingsCardHelpers {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+                    .stroke(TF.settingsBorder, lineWidth: 0.5)
             )
             .contentShape(Rectangle())
         }
@@ -773,7 +774,7 @@ extension SettingsCardHelpers {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+                    .stroke(TF.settingsBorder, lineWidth: 0.5)
             )
             .contentShape(Rectangle())
         }
@@ -847,6 +848,7 @@ struct SettingsSecureInputField: View {
 struct SettingsInlineSegmentedPicker: View {
     @Binding var selection: String
     let options: [(value: String, label: String)]
+    var segmentWidth: CGFloat? = nil
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var selectionNamespace
@@ -873,6 +875,7 @@ struct SettingsInlineSegmentedPicker: View {
                         .foregroundStyle(isSelected ? TF.settingsText : TF.settingsTextSecondary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 5)
+                        .frame(width: segmentWidth)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(SettingsSegmentedButtonStyle())
@@ -880,16 +883,16 @@ struct SettingsInlineSegmentedPicker: View {
                     ZStack {
                         if isSelected {
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color.white)
+                                .fill(TF.settingsCard)
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .strokeBorder(Color.black.opacity(0.04), lineWidth: 0.5)
+                                        .strokeBorder(TF.settingsBorder, lineWidth: 0.5)
                                 }
                                 .shadow(color: Color.black.opacity(0.08), radius: 2, x: 0, y: 1)
                                 .matchedGeometryEffect(id: "selected_segment_pill", in: selectionNamespace)
                         } else if isHovered {
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(Color.black.opacity(0.04))
+                                .fill(TF.settingsControlHover)
                         }
                     }
                 }

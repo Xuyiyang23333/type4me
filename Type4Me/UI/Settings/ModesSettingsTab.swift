@@ -964,7 +964,7 @@ struct HotkeySectionView: View, SettingsCardHelpers {
                         .font(.system(size: 8, weight: .bold))
                         .foregroundStyle(TF.settingsAccentRed)
                         .frame(width: 16, height: 16)
-                        .background(Circle().fill(Color.white))
+                        .background(Circle().fill(TF.settingsCard))
                         .overlay(Circle().stroke(accent.opacity(0.4), lineWidth: 1))
                         .contentShape(Circle())
                 }
@@ -1282,7 +1282,7 @@ struct HotkeyRecordingSheet: View {
                 }
                 .buttonStyle(.plain)
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(TF.settingsOnStrong)
                 .padding(.horizontal, 14)
                 .padding(.vertical, 5)
                 .background(RoundedRectangle(cornerRadius: 6).fill(TF.settingsNavActive))
@@ -1679,7 +1679,7 @@ private struct ModeDetailInner: View, SettingsCardHelpers {
                 Text(L("保存", "Save"))
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundStyle(isDirty ? Color.white : TF.settingsTextTertiary)
+            .foregroundStyle(isDirty ? TF.settingsOnStrong : TF.settingsTextTertiary)
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             .background(
@@ -1941,7 +1941,7 @@ private struct FormalWritingDetailInner: View, SettingsCardHelpers {
                 Text(L("保存", "Save"))
                     .font(.system(size: 12, weight: .medium))
             }
-            .foregroundStyle(isDirty ? Color.white : TF.settingsTextTertiary)
+            .foregroundStyle(isDirty ? TF.settingsOnStrong : TF.settingsTextTertiary)
             .padding(.horizontal, 12)
             .padding(.vertical, 5)
             .background(
@@ -2005,6 +2005,7 @@ private struct AutoSizingTextEditorRep: NSViewRepresentable {
         textView.allowsUndo = true
         textView.font = .systemFont(ofSize: 13)
         textView.textColor = NSColor(TF.settingsText)
+        textView.insertionPointColor = NSColor(TF.settingsText)
         textView.backgroundColor = .clear
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false

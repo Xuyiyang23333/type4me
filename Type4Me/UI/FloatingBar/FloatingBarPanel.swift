@@ -52,7 +52,7 @@ struct FloatingBarPanelLayout: Equatable {
 // MARK: - NSPanel Subclass
 
 /// Non-activating floating panel that never steals focus from the target app.
-/// Forces dark appearance for the sci-fi themed floating bar.
+/// Applies the independent recording theme without rebuilding the panel.
 final class FloatingBarPanel: NSPanel {
 
     init(contentRect: NSRect) {
@@ -75,12 +75,24 @@ final class FloatingBarPanel: NSPanel {
         acceptsMouseMovedEvents = true
         animationBehavior = .utilityWindow
         updateAppearance()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(preferencesDidChange(_:)),
+            name: UserDefaults.didChangeNotification,
+            object: nil
+        )
+    }
+
+    @objc nonisolated private func preferencesDidChange(_ notification: Notification) {
+        Task { @MainActor [weak self] in
+            self?.updateAppearance()
+        }
     }
 
     func updateAppearance() {
         let themeRaw = UserDefaults.standard.string(forKey: RecordingTheme.storageKey) ?? RecordingTheme.defaultValue.rawValue
         let theme = RecordingTheme(rawValue: themeRaw) ?? .dark
-        appearance = theme == .light ? NSAppearance(named: .aqua) : NSAppearance(named: .darkAqua)
+        appearance = theme.appearance
     }
 
     override var canBecomeKey: Bool { false }

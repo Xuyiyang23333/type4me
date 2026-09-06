@@ -295,7 +295,7 @@ struct PermissionGuideView: View {
                 Button(action: handlePrimaryAction) {
                     Text(embedded ? L("进入应用", "Launch Type4Me") : L("完成", "Done"))
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(model.requiredPermissionsGranted ? TF.settingsOnStrong : Color.white)
                         .padding(.horizontal, 18)
                         .padding(.vertical, 8)
                         .background(

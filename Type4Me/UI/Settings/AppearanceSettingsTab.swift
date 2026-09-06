@@ -6,6 +6,9 @@ import SwiftUI
 
 struct AppearanceSettingsTab: View, SettingsCardHelpers {
 
+    @AppStorage(SettingsTheme.storageKey)
+    private var settingsTheme = SettingsTheme.defaultValue.rawValue
+
     @AppStorage(RecordingTheme.storageKey)
     private var theme = RecordingTheme.defaultValue.rawValue
 
@@ -48,6 +51,10 @@ struct AppearanceSettingsTab: View, SettingsCardHelpers {
     @AppStorage("tf_language")
     private var language = AppLanguage.systemDefault
 
+    // Equal thirds, with enough room for “Follow System” in English.
+    private var themeSegmentWidth: CGFloat { language == AppLanguage.zh.rawValue ? 80 : 108 }
+    private var themeControlWidth: CGFloat { themeSegmentWidth * 3 + 8 }
+
     private var isCompact: Bool {
         indicatorStyle == RecordingIndicatorStyle.compact.rawValue
     }
@@ -77,6 +84,28 @@ struct AppearanceSettingsTab: View, SettingsCardHelpers {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            settingsGroupCard(L("设置窗口", "Settings Window"), icon: "paintpalette") {
+                settingsOptionRow(
+                    L("窗口主题", "Window Theme"),
+                    subtitle: L("立即生效，录音浮条主题独立设置。", "Applies immediately. The recording bar has its own theme."),
+                    controlWidth: themeControlWidth
+                ) {
+                    settingsInlineSegmentedPicker(
+                        selection: Binding(
+                            get: { SettingsTheme.resolve(settingsTheme).rawValue },
+                            set: { settingsTheme = $0 }
+                        ),
+                        options: [SettingsTheme.light, .system, .dark].map {
+                            ($0.rawValue, $0.displayName(language: AppLanguage(rawValue: language) ?? .en))
+                        },
+                        segmentWidth: themeSegmentWidth
+                    )
+                    .accessibilityLabel(L("窗口主题", "Window Theme"))
+                }
+            }
+
+            Spacer().frame(height: 16)
+
             AppearancePreviewStage(
                 presentation: presentation,
                 formattingOptions: formattingOptions
@@ -142,11 +171,12 @@ struct AppearanceSettingsTab: View, SettingsCardHelpers {
     private var themeRow: some View {
         settingsOptionRow(
             L("外观主题", "Appearance Theme"),
-            controlWidth: SettingsControlWidth.inlineSegmented
+            controlWidth: themeControlWidth
         ) {
             settingsInlineSegmentedPicker(
                 selection: $theme,
-                options: RecordingTheme.allCases.map { ($0.rawValue, $0.displayName) }
+                options: [RecordingTheme.light, .system, .dark].map { ($0.rawValue, $0.displayName) },
+                segmentWidth: themeSegmentWidth
             )
         }
     }

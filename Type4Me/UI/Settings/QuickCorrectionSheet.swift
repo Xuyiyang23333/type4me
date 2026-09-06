@@ -129,7 +129,7 @@ struct QuickCorrectionSheet: View {
                     Button { addSnippet() } label: {
                         Text(L("添加", "Add"))
                             .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(TF.settingsOnStrong)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 7)
                             .background(
@@ -178,7 +178,7 @@ struct QuickCorrectionSheet: View {
         return Text(char)
             .font(.system(size: 14))
             .frame(width: 32, height: 32)
-            .foregroundStyle(isSelected ? .white : TF.settingsText)
+            .foregroundStyle(isSelected ? TF.settingsOnStrong : TF.settingsText)
             .background(
                 RoundedRectangle(cornerRadius: TF.cornerSM)
                     .fill(isSelected ? TF.settingsText : TF.settingsBg)

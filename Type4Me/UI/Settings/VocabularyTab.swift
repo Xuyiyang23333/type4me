@@ -110,7 +110,7 @@ private struct VocabularyToolbarButton: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                    .stroke(TF.settingsBorder, lineWidth: 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
@@ -492,7 +492,7 @@ struct VocabularyTab: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+                .stroke(TF.settingsBorder, lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .settingsTooltip(L("搜索", "Search"), isEnabled: !isSearchExpanded)
@@ -526,7 +526,7 @@ struct VocabularyTab: View {
             Button(action: addHotword) {
                 Image(systemName: "plus")
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(TF.settingsOnStrong)
                     .frame(width: 38, height: 38)
                     .background(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -679,7 +679,7 @@ struct VocabularyTab: View {
                 Button(action: addSnippet) {
                     Image(systemName: "plus")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .frame(width: 38, height: 38)
                         .background(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -725,8 +725,8 @@ struct VocabularyTab: View {
         .padding(.leading, 9)
         .padding(.trailing, 6)
         .frame(height: 26)
-        .background(Capsule().fill(Color.white.opacity(0.86)))
-        .overlay(Capsule().stroke(Color.black.opacity(0.05), lineWidth: 1))
+        .background(Capsule().fill(TF.settingsCard.opacity(0.86)))
+        .overlay(Capsule().stroke(TF.settingsBorder, lineWidth: 1))
     }
 
     private var snippetEmptyState: some View {
@@ -750,7 +750,7 @@ struct VocabularyTab: View {
         .padding(.vertical, 34)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.black.opacity(0.018))
+                .fill(TF.settingsRowHover)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -822,7 +822,7 @@ struct VocabularyTab: View {
         )
         .overlay(
             Capsule()
-                .stroke(isEditing ? TF.settingsText.opacity(0.18) : Color.black.opacity(0.05), lineWidth: 1)
+                .stroke(isEditing ? TF.settingsText.opacity(0.18) : TF.settingsBorder, lineWidth: 1)
         )
         .contentShape(Capsule())
         .onHover { hovering in
@@ -843,7 +843,7 @@ struct VocabularyTab: View {
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(color)
                 .frame(width: 22, height: 22)
-                .background(Circle().fill(Color.white.opacity(0.78)))
+                .background(Circle().fill(TF.settingsCard.opacity(0.78)))
                 .contentShape(Circle())
         }
         .buttonStyle(.plain)
@@ -961,7 +961,7 @@ struct VocabularyTab: View {
                                     : TF.settingsControl
                             )
                         )
-                        .overlay(Circle().stroke(Color.black.opacity(0.06), lineWidth: 1))
+                        .overlay(Circle().stroke(TF.settingsBorder, lineWidth: 1))
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -1316,7 +1316,7 @@ struct VocabularyTab: View {
                 } label: {
                     Text(L("保存", "Save"))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .frame(minWidth: 76, minHeight: 34)
                         .background(
                             RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -1471,7 +1471,7 @@ struct VocabularyTab: View {
                 } label: {
                     Text(L("保存", "Save"))
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TF.settingsOnStrong)
                         .frame(minWidth: 76, minHeight: 34)
                         .background(
                             RoundedRectangle(cornerRadius: 9, style: .continuous)
@@ -1633,7 +1633,7 @@ private struct SnippetGroupRow: View, Equatable {
                 .stroke(
                     isHighlighted
                         ? TF.settingsAccentGreen.opacity(0.32)
-                        : (isHovered || isEditing ? Color.black.opacity(0.11) : TF.settingsBorder),
+                        : (isHovered || isEditing ? TF.settingsTextTertiary : TF.settingsBorder),
                     lineWidth: 1
                 )
                 .animation(.easeOut(duration: 0.1), value: isHovered)
@@ -1784,6 +1784,6 @@ private struct SnippetGroupRow: View, Equatable {
         .padding(.trailing, showsRemove ? 6 : 10)
         .frame(height: 26)
         .background(Capsule().fill(TF.settingsControl))
-        .overlay(Capsule().stroke(Color.black.opacity(0.045), lineWidth: 1))
+        .overlay(Capsule().stroke(TF.settingsBorder, lineWidth: 1))
     }
 }

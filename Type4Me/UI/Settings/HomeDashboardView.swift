@@ -500,7 +500,7 @@ struct HomeDashboardView: View {
                 Button(action: { openModesEditor(nil) }) {
                     Image(systemName: "slider.horizontal.3")
                         .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(isModesButtonHovered ? Color.white : TF.settingsTextSecondary)
+                        .foregroundStyle(isModesButtonHovered ? TF.settingsOnStrong : TF.settingsTextSecondary)
                         .frame(width: 28, height: 28)
                         .background(Circle().fill(isModesButtonHovered ? TF.settingsText : TF.settingsCardAlt))
                 }
@@ -1056,7 +1056,7 @@ struct HomeDottedWaveBackground: View {
                     )
                     context.fill(
                         Path(ellipseIn: dot),
-                        with: .color(Color.black.opacity(opacity))
+                        with: .color(TF.settingsText.opacity(opacity))
                     )
                 }
             }

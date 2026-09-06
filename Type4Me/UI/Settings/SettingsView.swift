@@ -106,6 +106,7 @@ struct SettingsView: View {
     @State private var windowBox = WeakSettingsWindowBox()
     @State private var isContentMounted = false
     @State private var bypassNextCloseGuard = false
+    @AppStorage(SettingsTheme.storageKey) private var settingsTheme = SettingsTheme.defaultValue.rawValue
     @AppStorage("tf_language") private var language = AppLanguage.systemDefault
     #if HAS_CLOUD_SUBSCRIPTION
     @State private var showDeviceConflict = false
@@ -146,12 +147,13 @@ struct SettingsView: View {
         .settingsTooltipHost(.settings)
         .background(SettingsWindowConfigurator(
             windowBox: windowBox,
+            theme: SettingsTheme.resolve(settingsTheme),
             onVisibilityChanged: { isVisible in
                 isContentMounted = isVisible
             },
             onShouldClose: shouldCloseWindow
         ))
-        .preferredColorScheme(.light)
+        .preferredColorScheme(SettingsTheme.resolve(settingsTheme).colorScheme)
         .onAppear {
             if VocabularyNavigationCenter.shared.hasPendingSettingsNavigation {
                 requestNavigation(to: .vocabulary, afterCommit: {
@@ -547,6 +549,7 @@ struct SettingsView: View {
 /// the native zoom button preserves macOS's hover tiling/full-screen menu.
 private struct SettingsWindowConfigurator: NSViewRepresentable {
     let windowBox: WeakSettingsWindowBox
+    let theme: SettingsTheme
     let onVisibilityChanged: @MainActor (Bool) -> Void
     let onShouldClose: @MainActor () -> Bool
 
@@ -579,12 +582,10 @@ private struct SettingsWindowConfigurator: NSViewRepresentable {
             guard let window = view.window else { return }
             coordinator.attach(to: window)
             window.isOpaque = true
-            window.backgroundColor = NSColor(
-                srgbRed: 1,
-                green: 1,
-                blue: 1,
-                alpha: 1
-            )
+            // Scope AppKit fields, title bar and attached sheets to this window.
+            // nil removes the override so system changes remain live.
+            window.appearance = theme.appearance
+            window.backgroundColor = NSColor(TF.settingsWindowBackground)
             window.titlebarAppearsTransparent = true
             // Only the native (transparent) title bar strip should move the window;
             // dragging elsewhere is reserved for in-content interactions like
@@ -881,7 +882,7 @@ struct SettingsRow: View {
 struct SettingsDivider: View {
     var body: some View {
         Rectangle()
-            .fill(Color.black.opacity(0.045))
+            .fill(TF.settingsBorder.opacity(0.55))
             .frame(height: 1)
     }
 }
