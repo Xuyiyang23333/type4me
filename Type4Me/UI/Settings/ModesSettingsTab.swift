@@ -2005,7 +2005,6 @@ private struct AutoSizingTextEditorRep: NSViewRepresentable {
         textView.allowsUndo = true
         textView.font = .systemFont(ofSize: 13)
         textView.textColor = NSColor(TF.settingsText)
-        textView.insertionPointColor = NSColor(TF.settingsText)
         textView.backgroundColor = .clear
         textView.isVerticallyResizable = true
         textView.isHorizontallyResizable = false

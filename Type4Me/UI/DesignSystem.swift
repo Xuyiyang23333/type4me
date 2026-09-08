@@ -88,7 +88,12 @@ enum TF {
 
     // MARK: Settings Palette
 
-    // Semantic colors resolve against each window’s effective appearance.
+    // Light values intentionally match the pre-dark-mode palette, including alpha.
+    // Neutral overlays retain their original per-control opacity and compositing.
+    static let settingsInk = adaptiveColor(light: (0, 0, 0), dark: (1, 1, 1))
+    static let settingsFieldText = adaptiveColor(light: (0.10, 0.10, 0.10), dark: (0.94, 0.94, 0.94))
+    static let settingsFieldPlaceholder = adaptiveColor(light: (0.42, 0.42, 0.42), dark: (0.67, 0.67, 0.67))
+    static let settingsFieldCursor = adaptiveColor(light: (0.25, 0.25, 0.25), dark: (0.94, 0.94, 0.94))
     static let settingsBg = adaptiveColor(light: (0.965, 0.965, 0.965), dark: (0.10, 0.10, 0.10))
     static let settingsCard = adaptiveColor(light: (1, 1, 1), dark: (0.16, 0.16, 0.16))
     static let settingsCardAlt = adaptiveColor(light: (0.935, 0.935, 0.935), dark: (0.20, 0.20, 0.20))
@@ -96,19 +101,19 @@ enum TF {
     static let settingsSidebar = adaptiveColor(light: (0.975, 0.975, 0.975), dark: (0.145, 0.145, 0.145))
     static let settingsSidebarActive = adaptiveColor(light: (0.895, 0.895, 0.895), dark: (0.27, 0.27, 0.27))
     static let settingsSidebarHover = adaptiveColor(light: (0.935, 0.935, 0.935), dark: (0.22, 0.22, 0.22))
-    static let settingsControl = adaptiveColor(light: (0.945, 0.945, 0.945), dark: (0.20, 0.20, 0.20))
-    static let settingsControlHover = adaptiveColor(light: (0.91, 0.91, 0.91), dark: (0.26, 0.26, 0.26))
-    static let settingsRowHover = adaptiveColor(light: (0.973, 0.973, 0.973), dark: (0.19, 0.19, 0.19))
-    static let settingsBorder = adaptiveColor(light: (0.82, 0.82, 0.82), dark: (0.38, 0.38, 0.38))
+    static let settingsControl = adaptiveColor(light: (241 / 255, 241 / 255, 241 / 255), dark: (0.20, 0.20, 0.20))
+    static let settingsControlHover = adaptiveColor(light: (232 / 255, 232 / 255, 232 / 255), dark: (0.26, 0.26, 0.26))
+    static let settingsRowHover = adaptiveColor(light: (248 / 255, 248 / 255, 248 / 255), dark: (0.19, 0.19, 0.19))
+    static let settingsBorder = settingsInk.opacity(0.075)
     static let settingsNavActive = adaptiveColor(light: (0.10, 0.10, 0.10), dark: (0.92, 0.92, 0.92))
     static let settingsText = adaptiveColor(light: (0.075, 0.075, 0.075), dark: (0.94, 0.94, 0.94))
     static let settingsTextSecondary = adaptiveColor(light: (0.30, 0.30, 0.30), dark: (0.78, 0.78, 0.78))
-    static let settingsTextTertiary = adaptiveColor(light: (0.40, 0.40, 0.40), dark: (0.67, 0.67, 0.67))
+    static let settingsTextTertiary = adaptiveColor(light: (0.48, 0.48, 0.48), dark: (0.67, 0.67, 0.67))
     static let settingsOnStrong = adaptiveColor(light: (1, 1, 1), dark: (0.08, 0.08, 0.08))
-    static let settingsAccentGreen = adaptiveColor(light: (0.16, 0.43, 0.20), dark: (0.46, 0.82, 0.51))
-    static let settingsAccentAmber = adaptiveColor(light: (0.49, 0.33, 0.06), dark: (0.94, 0.72, 0.32))
-    static let settingsAccentRed = adaptiveColor(light: (0.72, 0.20, 0.16), dark: (1.0, 0.55, 0.49))
-    static let settingsAccentBlue = adaptiveColor(light: (0.15, 0.36, 0.84), dark: (0.52, 0.72, 1.0))
+    static let settingsAccentGreen = adaptiveColor(light: (0.30, 0.62, 0.35), dark: (0.46, 0.82, 0.51))
+    static let settingsAccentAmber = adaptiveColor(light: (0.78, 0.55, 0.15), dark: (0.94, 0.72, 0.32))
+    static let settingsAccentRed = adaptiveColor(light: (0.80, 0.28, 0.22), dark: (1.0, 0.55, 0.49))
+    static let settingsAccentBlue = adaptiveColor(light: (0.15, 0.36, 0.94), dark: (0.52, 0.72, 1.0))
 
     // MARK: Spacing
 

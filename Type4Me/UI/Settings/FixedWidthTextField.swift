@@ -4,9 +4,9 @@ import AppKit
 // MARK: - Shared Style
 
 private enum SettingsFieldStyle {
-    static let textColor = NSColor(TF.settingsText)
-    static let placeholderColor = NSColor(TF.settingsTextTertiary)
-    static let cursorColor = NSColor(TF.settingsText)
+    static let textColor = NSColor(TF.settingsFieldText)
+    static let placeholderColor = NSColor(TF.settingsFieldPlaceholder)
+    static let cursorColor = NSColor(TF.settingsFieldCursor)
 
     /// Configure a bare NSTextField: transparent, no border, just text editing.
     static func applyCommon(to field: NSTextField, placeholder: String) {

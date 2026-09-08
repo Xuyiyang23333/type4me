@@ -882,7 +882,7 @@ struct SettingsRow: View {
 struct SettingsDivider: View {
     var body: some View {
         Rectangle()
-            .fill(TF.settingsBorder.opacity(0.55))
+            .fill(TF.settingsInk.opacity(0.045))
             .frame(height: 1)
     }
 }

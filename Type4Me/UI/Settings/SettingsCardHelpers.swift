@@ -128,7 +128,7 @@ struct SettingsTooltipBubble: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(TF.settingsBorder, lineWidth: 1)
+                    .stroke(TF.settingsInk.opacity(0.06), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
             .shadow(color: Color.black.opacity(0.03), radius: 8, x: 0, y: 2)
@@ -444,7 +444,7 @@ extension SettingsCardHelpers {
                 .labelsHidden()
                 .toggleStyle(.switch)
                 .controlSize(.small)
-                .tint(TF.settingsNavActive)
+                .tint(TF.settingsInk)
                 .disabled(!isEnabled)
         }
         .opacity(isEnabled ? 1.0 : 0.45)
@@ -698,7 +698,7 @@ extension SettingsCardHelpers {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(TF.settingsBorder, lineWidth: 0.5)
+                    .stroke(TF.settingsInk.opacity(0.06), lineWidth: 0.5)
             )
             .contentShape(Rectangle())
         }
@@ -774,7 +774,7 @@ extension SettingsCardHelpers {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(TF.settingsBorder, lineWidth: 0.5)
+                    .stroke(TF.settingsInk.opacity(0.06), lineWidth: 0.5)
             )
             .contentShape(Rectangle())
         }
@@ -886,13 +886,13 @@ struct SettingsInlineSegmentedPicker: View {
                                 .fill(TF.settingsCard)
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                        .strokeBorder(TF.settingsBorder, lineWidth: 0.5)
+                                        .strokeBorder(TF.settingsInk.opacity(0.04), lineWidth: 0.5)
                                 }
                                 .shadow(color: Color.black.opacity(0.08), radius: 2, x: 0, y: 1)
                                 .matchedGeometryEffect(id: "selected_segment_pill", in: selectionNamespace)
                         } else if isHovered {
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(TF.settingsControlHover)
+                                .fill(TF.settingsInk.opacity(0.04))
                         }
                     }
                 }

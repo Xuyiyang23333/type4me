@@ -1056,7 +1056,7 @@ struct HomeDottedWaveBackground: View {
                     )
                     context.fill(
                         Path(ellipseIn: dot),
-                        with: .color(TF.settingsText.opacity(opacity))
+                        with: .color(TF.settingsInk.opacity(opacity))
                     )
                 }
             }

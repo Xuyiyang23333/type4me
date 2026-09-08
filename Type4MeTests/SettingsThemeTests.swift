@@ -28,13 +28,13 @@ final class SettingsThemeTests: XCTestCase {
         XCTAssertEqual(savedValues.map(SettingsTheme.resolve), themes)
     }
 
-    func testSettingsTextAndSolidButtonContrastInBothAppearances() {
+    func testDarkSettingsTextAndSolidButtonContrast() {
         let surfaces = [TF.settingsWindowBackground, TF.settingsBg, TF.settingsCard,
                         TF.settingsCardAlt, TF.settingsSidebar, TF.settingsControl]
         let textColors = [TF.settingsText, TF.settingsTextSecondary, TF.settingsTextTertiary,
                           TF.settingsAccentBlue, TF.settingsAccentGreen,
                           TF.settingsAccentAmber, TF.settingsAccentRed]
-        for name in [NSAppearance.Name.aqua, .darkAqua] {
+        for name in [NSAppearance.Name.darkAqua] {
             let appearance = NSAppearance(named: name)!
             for surface in surfaces {
                 for text in textColors {
@@ -46,6 +46,48 @@ final class SettingsThemeTests: XCTestCase {
                          TF.settingsAccentGreen, TF.settingsAccentAmber, TF.settingsAccentRed] {
                 XCTAssertGreaterThanOrEqual(contrast(TF.settingsOnStrong, fill, appearance), 4.5,
                                             "Button contrast under \(name)")
+            }
+        }
+    }
+
+    // Snapshot of the light palette before PR #288 (1486b10a).
+    // Dark-mode support must not change RGB values or alpha compositing in light mode.
+    func testLightPalettePreservesOriginalColorsAndAlpha() {
+        let pairs: [(String, Color, Color)] = [
+            ("settingsBg", TF.settingsBg, Color(red: 0.965, green: 0.965, blue: 0.965)),
+            ("settingsCard", TF.settingsCard, Color.white),
+            ("settingsCardAlt", TF.settingsCardAlt, Color(red: 0.935, green: 0.935, blue: 0.935)),
+            ("settingsWindowBackground", TF.settingsWindowBackground, Color.white),
+            ("settingsSidebar", TF.settingsSidebar, Color(red: 0.975, green: 0.975, blue: 0.975)),
+            ("settingsSidebarActive", TF.settingsSidebarActive, Color(red: 0.895, green: 0.895, blue: 0.895)),
+            ("settingsSidebarHover", TF.settingsSidebarHover, Color(red: 0.935, green: 0.935, blue: 0.935)),
+            ("settingsControl", TF.settingsControl, Color(red: 241 / 255, green: 241 / 255, blue: 241 / 255)),
+            ("settingsControlHover", TF.settingsControlHover, Color(red: 232 / 255, green: 232 / 255, blue: 232 / 255)),
+            ("settingsRowHover", TF.settingsRowHover, Color(red: 248 / 255, green: 248 / 255, blue: 248 / 255)),
+            ("settingsBorder", TF.settingsBorder, Color.black.opacity(0.075)),
+            ("settingsNavActive", TF.settingsNavActive, Color(red: 0.10, green: 0.10, blue: 0.10)),
+            ("settingsText", TF.settingsText, Color(red: 0.075, green: 0.075, blue: 0.075)),
+            ("settingsTextSecondary", TF.settingsTextSecondary, Color(red: 0.30, green: 0.30, blue: 0.30)),
+            ("settingsTextTertiary", TF.settingsTextTertiary, Color(red: 0.48, green: 0.48, blue: 0.48)),
+            ("settingsAccentGreen", TF.settingsAccentGreen, Color(red: 0.30, green: 0.62, blue: 0.35)),
+            ("settingsAccentAmber", TF.settingsAccentAmber, Color(red: 0.78, green: 0.55, blue: 0.15)),
+            ("settingsAccentRed", TF.settingsAccentRed, Color(red: 0.80, green: 0.28, blue: 0.22)),
+            ("settingsAccentBlue", TF.settingsAccentBlue, Color(red: 0.15, green: 0.36, blue: 0.94)),
+            ("field text", TF.settingsFieldText, Color(red: 0.10, green: 0.10, blue: 0.10)),
+            ("field placeholder", TF.settingsFieldPlaceholder, Color(red: 0.42, green: 0.42, blue: 0.42)),
+            ("field cursor", TF.settingsFieldCursor, Color(red: 0.25, green: 0.25, blue: 0.25)),
+            ("solid button label", TF.settingsOnStrong, .white),
+            ("neutral overlay", TF.settingsInk, .black),
+        ]
+        let appearance = NSAppearance(named: .aqua)!
+        appearance.performAsCurrentDrawingAppearance {
+            for (name, actual, expected) in pairs {
+                let actual = NSColor(actual).usingColorSpace(.sRGB)!
+                let expected = NSColor(expected).usingColorSpace(.sRGB)!
+                XCTAssertEqual(actual.redComponent, expected.redComponent, accuracy: 0.00001, name)
+                XCTAssertEqual(actual.greenComponent, expected.greenComponent, accuracy: 0.00001, name)
+                XCTAssertEqual(actual.blueComponent, expected.blueComponent, accuracy: 0.00001, name)
+                XCTAssertEqual(actual.alphaComponent, expected.alphaComponent, accuracy: 0.00001, name)
             }
         }
     }

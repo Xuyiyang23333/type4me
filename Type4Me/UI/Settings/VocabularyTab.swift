@@ -110,7 +110,7 @@ private struct VocabularyToolbarButton: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .stroke(TF.settingsBorder, lineWidth: 1)
+                    .stroke(TF.settingsInk.opacity(0.06), lineWidth: 1)
             )
             .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
@@ -492,7 +492,7 @@ struct VocabularyTab: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .stroke(TF.settingsBorder, lineWidth: 1)
+                .stroke(TF.settingsInk.opacity(0.06), lineWidth: 1)
         )
         .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .settingsTooltip(L("搜索", "Search"), isEnabled: !isSearchExpanded)
@@ -726,7 +726,7 @@ struct VocabularyTab: View {
         .padding(.trailing, 6)
         .frame(height: 26)
         .background(Capsule().fill(TF.settingsCard.opacity(0.86)))
-        .overlay(Capsule().stroke(TF.settingsBorder, lineWidth: 1))
+        .overlay(Capsule().stroke(TF.settingsInk.opacity(0.05), lineWidth: 1))
     }
 
     private var snippetEmptyState: some View {
@@ -750,7 +750,7 @@ struct VocabularyTab: View {
         .padding(.vertical, 34)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(TF.settingsRowHover)
+                .fill(TF.settingsInk.opacity(0.018))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -822,7 +822,7 @@ struct VocabularyTab: View {
         )
         .overlay(
             Capsule()
-                .stroke(isEditing ? TF.settingsText.opacity(0.18) : TF.settingsBorder, lineWidth: 1)
+                .stroke(isEditing ? TF.settingsText.opacity(0.18) : TF.settingsInk.opacity(0.05), lineWidth: 1)
         )
         .contentShape(Capsule())
         .onHover { hovering in
@@ -961,7 +961,7 @@ struct VocabularyTab: View {
                                     : TF.settingsControl
                             )
                         )
-                        .overlay(Circle().stroke(TF.settingsBorder, lineWidth: 1))
+                        .overlay(Circle().stroke(TF.settingsInk.opacity(0.06), lineWidth: 1))
                         .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
@@ -1633,7 +1633,7 @@ private struct SnippetGroupRow: View, Equatable {
                 .stroke(
                     isHighlighted
                         ? TF.settingsAccentGreen.opacity(0.32)
-                        : (isHovered || isEditing ? TF.settingsTextTertiary : TF.settingsBorder),
+                        : (isHovered || isEditing ? TF.settingsInk.opacity(0.11) : TF.settingsBorder),
                     lineWidth: 1
                 )
                 .animation(.easeOut(duration: 0.1), value: isHovered)
@@ -1784,6 +1784,6 @@ private struct SnippetGroupRow: View, Equatable {
         .padding(.trailing, showsRemove ? 6 : 10)
         .frame(height: 26)
         .background(Capsule().fill(TF.settingsControl))
-        .overlay(Capsule().stroke(TF.settingsBorder, lineWidth: 1))
+        .overlay(Capsule().stroke(TF.settingsInk.opacity(0.045), lineWidth: 1))
     }
 }

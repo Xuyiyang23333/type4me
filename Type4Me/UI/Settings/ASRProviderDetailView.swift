@@ -330,7 +330,7 @@ struct ASRProviderDetailView: View, SettingsCardHelpers {
                     .background(Capsule().fill(TF.settingsCardAlt))
                     .overlay(
                         Capsule()
-                            .strokeBorder(TF.settingsBorder, lineWidth: 0.5)
+                            .strokeBorder(TF.settingsInk.opacity(0.06), lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(SettingsListRowButtonStyle())
@@ -639,7 +639,7 @@ struct ASRProviderDetailView: View, SettingsCardHelpers {
                     .labelsHidden()
                     .toggleStyle(.switch)
                     .controlSize(.small)
-                    .tint(TF.settingsNavActive)
+                    .tint(TF.settingsInk)
                 }
             }
 
