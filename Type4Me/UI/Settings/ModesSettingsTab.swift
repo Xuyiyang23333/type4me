@@ -453,6 +453,8 @@ struct ModesSettingsTab: View, SettingsCardHelpers {
                 mode: mode,
                 onSave: { updated in
                     if let idx = modes.firstIndex(where: { $0.id == updated.id }) {
+                        var updated = updated
+                        updated.manualInputHotkey = modes[idx].manualInputHotkey
                         modes[idx] = updated
                         persistModes()
                     }
@@ -467,8 +469,6 @@ struct ModesSettingsTab: View, SettingsCardHelpers {
             )
         }
     }
-
-    // MARK: - Hotkey binding actions (shared by all detail variants)
 
     private func editBinding(_ mode: ProcessingMode, _ binding: HotkeyBinding) {
         recordingTarget = RecordingTarget(
@@ -805,6 +805,8 @@ struct ModesSettingsTab: View, SettingsCardHelpers {
             mode: mode,
             onSave: { updated in
                 if let idx = modes.firstIndex(where: { $0.id == updated.id }) {
+                    var updated = updated
+                    updated.manualInputHotkey = modes[idx].manualInputHotkey
                     modes[idx] = updated
                     persistModes()
                 }
@@ -848,7 +850,9 @@ struct ModesSettingsTab: View, SettingsCardHelpers {
               let index = modes.firstIndex(where: { $0.id == draftMode.id })
         else { return false }
         let previous = modes[index]
-        modes[index] = draftMode
+        var mergedDraft = draftMode
+        mergedDraft.manualInputHotkey = modes[index].manualInputHotkey
+        modes[index] = mergedDraft
         guard persistModes() else {
             modes[index] = previous
             return false
@@ -1085,6 +1089,7 @@ struct HotkeyRecordingSheet: View {
     let checkConflict: (Int?, UInt64?) -> ProcessingMode?
     let checkDuplicateInMode: (Int?, UInt64?) -> Bool
     let checkPrefixConflict: (Int?, UInt64?) -> ProcessingMode?
+    let checkReservedConflict: (Int?, UInt64?) -> String?
     let onConfirm: (Int, UInt64?, ProcessingMode.HotkeyStyle) -> Void
     let onCancel: () -> Void
 
@@ -1102,6 +1107,7 @@ struct HotkeyRecordingSheet: View {
         checkConflict: @escaping (Int?, UInt64?) -> ProcessingMode?,
         checkDuplicateInMode: @escaping (Int?, UInt64?) -> Bool,
         checkPrefixConflict: @escaping (Int?, UInt64?) -> ProcessingMode?,
+        checkReservedConflict: ((Int?, UInt64?) -> String?)? = nil,
         onConfirm: @escaping (Int, UInt64?, ProcessingMode.HotkeyStyle) -> Void,
         onCancel: @escaping () -> Void
     ) {
@@ -1109,6 +1115,7 @@ struct HotkeyRecordingSheet: View {
         self.checkConflict = checkConflict
         self.checkDuplicateInMode = checkDuplicateInMode
         self.checkPrefixConflict = checkPrefixConflict
+        self.checkReservedConflict = checkReservedConflict ?? ModeHotkeyEditing.makeReservedConflictCheck(for: target)
         self.onConfirm = onConfirm
         self.onCancel = onCancel
         _hotkeyStyle = State(initialValue: target.initialStyle)
@@ -1117,6 +1124,9 @@ struct HotkeyRecordingSheet: View {
         _capturedModifiers = State(initialValue: target.initialModifiers)
         _isListening = State(initialValue: target.initialKeyCode == nil)
     }
+
+    @AppStorage("tf_language") private var language = AppLanguage.systemDefault
+    private var reservedConflict: String? { checkReservedConflict(capturedKeyCode, capturedModifiers) }
 
     private var isEditing: Bool { target.editingBindingId != nil }
 
@@ -1173,6 +1183,15 @@ struct HotkeyRecordingSheet: View {
                     )
             )
 
+            if let reservedConflict {
+                Label(L("「\(reservedConflict)」正在使用此快捷键，请选择其他组合。",
+                        "This shortcut is used by \(reservedConflict). Choose another combination."),
+                      systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(TF.settingsAccentAmber)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             if isDuplicateInMode {
                 HStack(spacing: 4) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -1208,27 +1227,29 @@ struct HotkeyRecordingSheet: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(L("触发方式", "Trigger style"))
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(TF.settingsTextTertiary)
+            if !target.isManualInput {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(L("触发方式", "Trigger style"))
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(TF.settingsTextTertiary)
 
-                SettingsInlineSegmentedPicker(
-                    selection: Binding(
-                        get: { hotkeyStyle.rawValue },
-                        set: { raw in
-                            if let s = ProcessingMode.HotkeyStyle(rawValue: raw) {
-                                hotkeyStyle = s
+                    SettingsInlineSegmentedPicker(
+                        selection: Binding(
+                            get: { hotkeyStyle.rawValue },
+                            set: { raw in
+                                if let s = ProcessingMode.HotkeyStyle(rawValue: raw) {
+                                    hotkeyStyle = s
+                                }
                             }
-                        }
-                    ),
-                    options: [
-                        (ProcessingMode.HotkeyStyle.hold.rawValue, L("按住录制", "Hold to record")),
-                        (ProcessingMode.HotkeyStyle.toggle.rawValue, L("按下切换", "Toggle")),
-                    ]
-                )
-            }
+                        ),
+                        options: [
+                            (ProcessingMode.HotkeyStyle.hold.rawValue, L("按住录制", "Hold to record")),
+                            (ProcessingMode.HotkeyStyle.toggle.rawValue, L("按下切换", "Toggle")),
+                        ]
+                    )
+                }
 
+            }
             if capturedKeyCode == 63 {
                 Text(L(
                     "⚠️ 请在系统设置 → 键盘中，将「按下 🌐 键时」改为「不执行任何操作」，否则会与系统功能冲突",
@@ -1276,7 +1297,7 @@ struct HotkeyRecordingSheet: View {
                 .foregroundStyle(TF.settingsTextSecondary)
 
                 Button(prefixConflict == nil ? L("确认", "Confirm") : L("仍要设置", "Set Anyway")) {
-                    guard let code = capturedKeyCode, !isDuplicateInMode else { return }
+                    guard let code = capturedKeyCode, !isDuplicateInMode, reservedConflict == nil else { return }
                     cleanup()
                     onConfirm(code, capturedModifiers, hotkeyStyle)
                 }
@@ -1286,8 +1307,8 @@ struct HotkeyRecordingSheet: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 5)
                 .background(RoundedRectangle(cornerRadius: 6).fill(TF.settingsNavActive))
-                .disabled(capturedKeyCode == nil || isDuplicateInMode)
-                .opacity((capturedKeyCode == nil || isDuplicateInMode) ? 0.5 : 1)
+                .disabled(capturedKeyCode == nil || isDuplicateInMode || reservedConflict != nil)
+                .opacity((capturedKeyCode == nil || isDuplicateInMode || reservedConflict != nil) ? 0.5 : 1)
             }
         }
         .padding(28)

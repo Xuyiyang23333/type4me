@@ -41,6 +41,7 @@ struct ModeStorage {
             if mode.id == ProcessingMode.directId {
                 var d = ProcessingMode.direct
                 d.hotkeyBindings = mode.hotkeyBindings
+                d.manualInputHotkey = mode.manualInputHotkey
                 d.shortTextExemption = mode.shortTextExemption
                 d.punctuationMode = mode.punctuationMode
                 return d
@@ -48,6 +49,7 @@ struct ModeStorage {
             if mode.id == ProcessingMode.intelliSenseId {
                 var d = ProcessingMode.intelliSense
                 d.hotkeyBindings = mode.hotkeyBindings
+                d.manualInputHotkey = mode.manualInputHotkey
                 d.shortTextExemption = mode.shortTextExemption
                 d.punctuationMode = mode.punctuationMode
                 return d
@@ -70,6 +72,7 @@ struct ModeStorage {
                     || isV4
                 var d = ProcessingMode.formalWriting
                 d.hotkeyBindings = mode.hotkeyBindings
+                d.manualInputHotkey = mode.manualInputHotkey
                 d.description = mode.description
                 d.shortTextExemption = mode.shortTextExemption
                 d.punctuationMode = mode.punctuationMode
@@ -84,6 +87,7 @@ struct ModeStorage {
             if mode.id == ProcessingMode.selectionAskId {
                 var d = ProcessingMode.selectionAsk
                 d.hotkeyBindings = mode.hotkeyBindings
+                d.manualInputHotkey = mode.manualInputHotkey
                 d.punctuationMode = mode.punctuationMode
                 if mode.prompt != ProcessingMode.selectionAsk.prompt,
                    !selectionAskPromptIsLegacy(mode.prompt) {
@@ -96,12 +100,14 @@ struct ModeStorage {
             if mode.id == ProcessingMode.macActionId {
                 var d = ProcessingMode.macAction
                 d.hotkeyBindings = mode.hotkeyBindings
+                d.manualInputHotkey = mode.manualInputHotkey
                 d.punctuationMode = mode.punctuationMode
                 return d
             }
             if mode.id == ProcessingMode.translationModeId {
                 var canonical = ProcessingMode.translation()
                 canonical.hotkeyBindings = mode.hotkeyBindings
+                canonical.manualInputHotkey = mode.manualInputHotkey
                 canonical.punctuationMode = mode.punctuationMode
                 let storedCode = mode.translationTargetLanguageCode?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
@@ -117,6 +123,7 @@ struct ModeStorage {
                 if isLegacy {
                     var migrated = ProcessingMode.promptOptimize
                     migrated.hotkeyBindings = mode.hotkeyBindings
+                    migrated.manualInputHotkey = mode.manualInputHotkey
                     migrated.description = mode.description
                     migrated.punctuationMode = mode.punctuationMode
                     return migrated
@@ -217,6 +224,7 @@ struct ModeStorage {
             migrated.description = mode.description
         }
         migrated.hotkeyBindings = mode.hotkeyBindings
+        migrated.manualInputHotkey = mode.manualInputHotkey
         migrated.shortTextExemption = mode.shortTextExemption
         migrated.punctuationMode = mode.punctuationMode
         migrated.isBuiltin = false

@@ -1190,6 +1190,7 @@ struct HistoryTab: View {
     }
 
     private func historyASRDescription(_ record: HistoryRecord) -> String? {
+        if record.asrProvider == "manual" { return L("手动输入", "Manual input") }
         let model = record.asrModel?.trimmingCharacters(in: .whitespacesAndNewlines)
         let provider = record.asrProvider?.trimmingCharacters(in: .whitespacesAndNewlines)
         let source = model?.isEmpty == false ? model : (provider?.isEmpty == false ? provider : nil)
@@ -1197,6 +1198,7 @@ struct HistoryTab: View {
     }
 
     private func historyASRDisplayDescription(_ record: HistoryRecord) -> String? {
+        if record.asrProvider == "manual" { return L("手动输入", "Manual input") }
         let model = record.asrModel?.trimmingCharacters(in: .whitespacesAndNewlines)
         let provider = record.asrProvider?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let model, !model.isEmpty {

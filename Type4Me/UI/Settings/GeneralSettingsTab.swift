@@ -37,6 +37,7 @@ struct GeneralSettingsTab: View, SettingsCardHelpers {
     @State private var showMicrophonePrioritySheet = false
     @State private var draftMicrophonePriorityEntries: [AudioInputDevicePreferenceEntry] = []
 
+    @State private var reviseHotkeyConflict = false
     @State private var reviseSettings: ReviseSettings = ReviseSettingsStore.shared.load()
     @State private var reviseKeyCode: Int? = ReviseSettingsStore.shared.load().hotkey?.keyCode
     @State private var reviseModifiers: UInt64? = ReviseSettingsStore.shared.load().hotkey?.modifiers
@@ -51,7 +52,7 @@ struct GeneralSettingsTab: View, SettingsCardHelpers {
                 SettingsSectionHeader(
                     label: L("通用", "GENERAL"),
                     title: L("通用设置", "General Settings"),
-                    description: L("偏好设置与系统权限。快捷键请在「处理模式」中配置。", "Preferences and permissions. Hotkeys are configured in Modes.")
+                    description: L("输入方式、快捷键与系统权限。", "Input, shortcuts, and system permissions.")
                 )
             }
 
@@ -75,6 +76,9 @@ struct GeneralSettingsTab: View, SettingsCardHelpers {
                 injectionTargetRow
             }
 
+            Spacer().frame(height: 16)
+
+            ManualInputSettingsSection()
             Spacer().frame(height: 16)
 
             // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -469,33 +473,33 @@ struct GeneralSettingsTab: View, SettingsCardHelpers {
             controlWidth: SettingsControlWidth.provider
         ) {
             HotkeyRecorderView(
-                keyCode: Binding(
-                    get: { reviseKeyCode },
-                    set: { newCode in
-                        reviseKeyCode = newCode
-                        if let code = newCode {
-                            var hk = reviseSettings.hotkey ?? ReviseSettings.defaultHotkey
-                            hk.keyCode = code
-                            hk.modifiers = reviseModifiers
-                            reviseSettings.hotkey = hk
-                            persistReviseSettings()
-                        }
+                keyCode: $reviseKeyCode, modifiers: $reviseModifiers,
+                onCapture: { code, mods in
+                    guard !ManualInputSettings.matches(keyCode: code, modifiers: mods, modes: ModeStorage().load()) else {
+                        reviseHotkeyConflict = true
+                        return
                     }
-                ),
-                modifiers: Binding(
-                    get: { reviseModifiers },
-                    set: { newMods in
-                        reviseModifiers = newMods
-                        if let code = reviseKeyCode {
-                            var hk = reviseSettings.hotkey ?? ReviseSettings.defaultHotkey
-                            hk.keyCode = code
-                            hk.modifiers = newMods
-                            reviseSettings.hotkey = hk
-                            persistReviseSettings()
-                        }
-                    }
-                )
+                    reviseKeyCode = code
+                    reviseModifiers = mods
+                    var key = reviseSettings.hotkey ?? ReviseSettings.defaultHotkey
+                    key.keyCode = code
+                    key.modifiers = mods
+                    reviseSettings.hotkey = key
+                    persistReviseSettings()
+                },
+                onClear: {
+                    reviseKeyCode = nil
+                    reviseModifiers = nil
+                    reviseSettings.hotkey = nil
+                    persistReviseSettings()
+                }
             )
+            .alert(L("快捷键已被占用", "Shortcut Already in Use"), isPresented: $reviseHotkeyConflict) {
+                Button(L("好", "OK"), role: .cancel) { }
+            } message: {
+                Text(L("此组合用于手动输入，请为改口选择其他快捷键。",
+                       "This combination opens manual input. Choose another shortcut for Revise."))
+            }
         }
     }
 

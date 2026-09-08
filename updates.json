@@ -1,6 +1,17 @@
 {
-  "latest": "2.6.1",
+  "latest": "2.7.0",
   "releases": [
+    {
+      "version": "2.7.0",
+      "date": "2026-09-07",
+      "notes": "- 新增全局手动输入快捷键，不方便说话时也能输入或粘贴文字，再调用翻译、润色等已有模式。\n- 浮窗顶部展示可用模式及快捷键，支持鼠标悬停、点击选择和模式快捷键提交。\n- 输入区默认一行，随内容自动增高；延续明亮、深色主题，优化自动聚焦、拼音组字占位提示与阴影边缘。\n- 手动输入设置位于录音设置下方，快捷键录制、编辑、删除和冲突处理与模式设置保持一致。\n- 保留原有安全写入与剪贴板回退，手动输入不启动麦克风或语音识别。\n- 修复 Meta Muse 热词超过 20 个字符的问题。",
+      "cloud_dmg_url": "https://github.com/joewongjc/type4me/releases/download/v2.7.0/Type4Me-v2.7.0-cloud.dmg",
+      "cloud_dmg_size": 12803263,
+      "cloud_dmg_sha256": "9f42a59eea4a64f47944ce5b0b8fadc4d0b141beb9103979c3fde736f18173f2",
+      "local_dmg_url": "https://github.com/joewongjc/type4me/releases/download/v2.7.0/Type4Me-v2.7.0-local-apple-silicon.dmg",
+      "local_dmg_size": 717871269,
+      "local_dmg_sha256": "f0d9a37944414d738c1e8ea4b0946b60678d219730e04b750ae8e0bea8cdf7bc"
+    },
     {
       "version": "2.6.1",
       "date": "2026-09-05",

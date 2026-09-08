@@ -136,6 +136,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let navigationModel = AppNavigationModel()
     /// Computed dynamically per recording based on audio device topology.
     private var floatingBarController: FloatingBarController?
+    private var manualInputController: ManualInputController?
+    private var manualInputStartTask: Task<Void, Never>?
+    private var manualInputGeneration = 0
+    private var isEditingManualInput = false
     let askAnythingStore = AskAnythingStore()
     lazy var askAnythingCoordinator = AskAnythingCoordinator(store: askAnythingStore)
     private var selectionAskController: SelectionAskController?
@@ -388,6 +392,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             MainActor.assumeIsolated { [weak self] in
                 self?.refreshModeAvailability()
             }
+        }
+
+        NotificationCenter.default.addObserver(
+            forName: .manualInputSettingsDidChange, object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshModeAvailability() }
         }
 
         NotificationCenter.default.addObserver(
@@ -682,6 +692,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func requestRecordingStart(mode: ProcessingMode, source: RecordingStartSource) {
+        guard !isEditingManualInput else { return }
         switch appState.barPhase {
         case .hidden, .done, .error:
             break
@@ -860,13 +871,97 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { await askAnythingStore.shrinkMemory() }
     }
 
+    private func toggleManualInput() {
+        if isEditingManualInput {
+            cancelManualInput()
+            return
+        }
+        let modes = appState.availableModes.filter(\.supportsManualInput)
+        guard !modes.isEmpty, [.hidden, .done, .error].contains(appState.barPhase) else {
+            hotkeyManager.resetActiveState()
+            return
+        }
+        isEditingManualInput = true
+        manualInputGeneration &+= 1
+        let generation = manualInputGeneration
+        registerHotkeys(for: KeychainService.selectedASRProvider)
+        floatingBarController?.setManualInputEditing(true)
+        appState.startRecording(showsPanel: false)
+        manualInputStartTask = Task { [weak self] in
+            guard let self else { return }
+            let idle = await self.session.awaitIdle()
+            guard !Task.isCancelled, self.manualInputGeneration == generation else { return }
+            guard idle else {
+                self.cancelManualInput()
+                return
+            }
+            let ready = await self.session.startManualInput(modes: modes)
+            guard !Task.isCancelled, self.manualInputGeneration == generation else { return }
+            guard ready else {
+                self.cancelManualInput()
+                return
+            }
+            self.appState.markRecordingReady()
+            let controller = ManualInputController(modes: modes,
+                onSubmit: { [weak self] mode in self?.submitManualInput(mode: mode) },
+                onCancel: { [weak self] in self?.cancelManualInput() })
+            self.manualInputController = controller
+            controller.show()
+            self.manualInputStartTask = nil
+        }
+    }
+
+    private func submitManualInput(mode: ProcessingMode) {
+        guard isEditingManualInput, mode.supportsManualInput,
+              let text = manualInputController?.submittedText() else { return }
+        manualInputController?.close()
+        manualInputController = nil
+        isEditingManualInput = false
+        appState.selectModeForRecording(mode)
+        registerHotkeys(for: KeychainService.selectedASRProvider)
+        appState.appendSegment(text, isConfirmed: true)
+        floatingBarController?.setManualInputEditing(false)
+        appState.stopRecording()
+        hotkeyManager.resetActiveState()
+        hotkeyManager.isProcessing = true
+        Task { await session.submitManualInput(text, mode: mode) }
+    }
+
+    private func cancelManualInput() {
+        guard isEditingManualInput else { return }
+        manualInputGeneration &+= 1
+        let generation = manualInputGeneration
+        let startTask = manualInputStartTask
+        startTask?.cancel()
+        manualInputStartTask = nil
+        manualInputController?.close()
+        manualInputController = nil
+        // Keep the session reserved until startup and cancellation have both drained.
+        Task {
+            await startTask?.value
+            await session.cancelRecording()
+            guard manualInputGeneration == generation else { return }
+            isEditingManualInput = false
+            registerHotkeys(for: KeychainService.selectedASRProvider)
+            appState.cancel()
+            floatingBarController?.setManualInputEditing(false)
+            hotkeyManager.resetActiveState()
+        }
+    }
+
     private func registerHotkeys(for provider: ASRProvider) {
         let availableModes = appState.availableModes
-        let modes = ASRProviderRegistry.supportedModes(from: availableModes, for: provider)
+        let modes = isEditingManualInput
+            ? (manualInputController?.draft.modes ?? availableModes.filter(\.supportsManualInput))
+            : ASRProviderRegistry.supportedModes(from: availableModes, for: provider)
         var bindings: [ModeBinding] = modes.flatMap { mode -> [ModeBinding] in
             let capturedMode = mode
             let onStart: @Sendable () -> Void = { [weak self] in
                 guard let self else { return }
+                if MainActor.assumeIsolated({ self.isEditingManualInput }) {
+                    MainActor.assumeIsolated { self.hotkeyManager.resetActiveState() }
+                    return
+                }
 
                 if capturedMode.executionKind == .selectionAsk,
                    MainActor.assumeIsolated({ self.selectionAskController?.isVisible == true }) {
@@ -1064,7 +1159,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let reviseSettings = ReviseSettingsStore.shared.load()
-        if reviseSettings.enabled && ReviseSettingsStore.isRuntimeEnabled,
+        if !isEditingManualInput, reviseSettings.enabled && ReviseSettingsStore.isRuntimeEnabled,
            let hk = reviseSettings.hotkey {
             let reviseOnStart: @Sendable () -> Void = { [weak self] in
                 guard let self else { return }
@@ -1122,6 +1217,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             bindings.append(reviseBinding)
         }
 
+        if let key = ManualInputSettings.load(modes: availableModes),
+           ManualInputSettings.conflict(keyCode: key.keyCode, modifiers: key.modifiers, modes: availableModes) == nil {
+            let toggle: @Sendable () -> Void = { [weak self] in
+                MainActor.assumeIsolated { self?.toggleManualInput() }
+            }
+            bindings.append(ModeBinding(
+                bindingId: key.id, owner: .manualInput, keyCode: CGKeyCode(key.keyCode),
+                modifiers: CGEventFlags(rawValue: key.modifiers ?? 0), style: .toggle,
+                onStart: toggle, onStop: toggle,
+                onAbort: { [weak self] in MainActor.assumeIsolated { self?.cancelManualInput() } }))
+        }
+        hotkeyManager.onManualModePress = { [weak self] id in
+            MainActor.assumeIsolated {
+                guard let self, self.isEditingManualInput else { return false }
+                if let mode = self.manualInputController?.draft.modes.first(where: { $0.id == id }) {
+                    self.submitManualInput(mode: mode)
+                }
+                return true
+            }
+        }
+        hotkeyManager.passesEscapeToInputMethod = { [weak self] in
+            MainActor.assumeIsolated { self?.manualInputController?.hasMarkedText == true }
+        }
         hotkeyManager.registerBindings(bindings)
 
         // Cross-mode finish: user pressed mode B's key while mode A was recording.
@@ -1186,6 +1304,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Returns true if the abort was actually handled (ESC should be swallowed).
         hotkeyManager.onESCAbort = { [weak self] in
             guard let self else { return false }
+            if self.isEditingManualInput {
+                self.cancelManualInput()
+                return true
+            }
             if MainActor.assumeIsolated({
                 self.askAnythingCoordinator.isRecordingFollowUp
             }) {
@@ -1314,6 +1436,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ action: RecordingControlAction,
         capturesManualEndTarget: Bool
     ) {
+        if isEditingManualInput {
+            switch action {
+            case .finish: manualInputController?.show()
+            case .cancel: cancelManualInput()
+            }
+            return
+        }
         let phase = appState.barPhase
         guard phase == .preparing || phase == .recording else { return }
 

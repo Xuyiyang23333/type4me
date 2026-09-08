@@ -35,6 +35,56 @@ final class BindingCounters: @unchecked Sendable {
 /// standalone modifier hotkey state machine lifecycle (Issue #243 / MSOR-7).
 final class HotkeyStateMachineTests: XCTestCase {
 
+    func testManualComposerConsumesModePressWithoutStartingVoiceOrHoldTimer() {
+        for style in [ProcessingMode.HotkeyStyle.hold, .toggle] {
+            let manager = makeManager()
+            let counters = BindingCounters()
+            let modeID = UUID()
+            let binding = style == .hold
+                ? makeHoldBinding(modeId: modeID, counters: counters)
+                : makeToggleBinding(modeId: modeID, counters: counters)
+            var submittedModes: [UUID] = []
+            manager.onManualModePress = { submittedModes.append($0); return true }
+            manager.registerBindings([binding])
+            manager.simulateBindingEvent(binding, pressed: true)
+            manager.simulateBindingEvent(binding, pressed: false)
+            XCTAssertEqual(submittedModes, [modeID])
+            XCTAssertEqual(counters.startCount, 0)
+            XCTAssertEqual(counters.stopCount, 0)
+            XCTAssertFalse(manager.isActiveRecordingBinding(binding.bindingId))
+            XCTAssertFalse(manager.isHoldActive(for: binding.bindingId))
+            XCTAssertFalse(manager.hasPendingSafetyTimer(for: binding.bindingId))
+
+            // Closing the composer restores the ordinary voice route.
+            manager.onManualModePress = { _ in false }
+            manager.simulateBindingEvent(binding, pressed: true)
+            XCTAssertEqual(counters.startCount, 1)
+            manager.simulateStopActiveRecording()
+        }
+    }
+
+    func testManualModePressDoesNotStopLauncherOwnedSession() {
+        let manager = makeManager()
+        let voice = BindingCounters()
+        let launcher = BindingCounters()
+        let global = ModeBinding(bindingId: UUID(), owner: .manualInput,
+                                 keyCode: 49, modifiers: [.maskControl, .maskAlternate], style: .toggle,
+                                 onStart: { launcher.recordStart() },
+                                 onStop: { launcher.recordStop() }, onAbort: {})
+        let mode = makeHoldBinding(counters: voice)
+        manager.registerBindings([global, mode])
+        manager.simulateBindingEvent(global, pressed: true)
+        manager.onManualModePress = { _ in true }
+        manager.simulateBindingEvent(mode, pressed: true)
+        manager.simulateBindingEvent(mode, pressed: false)
+        XCTAssertEqual(launcher.startCount, 1)
+        XCTAssertEqual(launcher.stopCount, 0)
+        XCTAssertTrue(manager.isActiveRecordingBinding(global.bindingId))
+        XCTAssertEqual(voice.startCount, 0)
+        XCTAssertEqual(voice.stopCount, 0)
+        manager.resetActiveState()
+    }
+
     // MARK: - Fixtures
 
     private func makeManager() -> HotkeyManager {

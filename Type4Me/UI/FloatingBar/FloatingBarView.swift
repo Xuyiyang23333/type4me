@@ -1408,7 +1408,7 @@ private func usesNativeLiquidGlass(reduceTransparency: Bool) -> Bool {
 
 /// Native Liquid Glass surface, with a frosted `NSVisualEffectView` fallback for
 /// macOS 14/15 and an opaque fallback when "reduce transparency" is on.
-private struct RecordingGlassSurface: View {
+struct RecordingGlassSurface: View {
     let cornerRadius: CGFloat
     var theme: RecordingTheme = .dark
     /// Only consumed by the macOS 14/15 fallback; the native glass path uses

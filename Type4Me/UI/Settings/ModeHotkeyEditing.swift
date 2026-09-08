@@ -15,6 +15,7 @@ struct RecordingTarget: Identifiable {
     let initialKeyCode: Int?
     let initialModifiers: UInt64?
     let initialStyle: ProcessingMode.HotkeyStyle
+    var isManualInput = false
 }
 
 // MARK: - Drop Delegate
@@ -76,7 +77,7 @@ enum ModeHotkeyEditing {
             guard let code else { return nil }
             return modes.first { other in
                 guard other.id != target.modeId else { return false }
-                return other.hotkeyBindings.contains { b in
+                return other.allHotkeyBindings.contains { b in
                     ModeBinding.hotkeysAreEquivalent(
                         keyCode: code, modifiers: mods,
                         otherKeyCode: b.keyCode, otherModifiers: b.modifiers
@@ -96,7 +97,7 @@ enum ModeHotkeyEditing {
             guard let code,
                   let mode = modes.first(where: { $0.id == target.modeId })
             else { return false }
-            return mode.hotkeyBindings.contains { b in
+            return mode.allHotkeyBindings.contains { b in
                 b.id != target.editingBindingId
                     && ModeBinding.hotkeysAreEquivalent(
                         keyCode: code, modifiers: mods,
@@ -115,7 +116,7 @@ enum ModeHotkeyEditing {
         { code, mods in
             guard let code else { return nil }
             return modes.first { other in
-                other.hotkeyBindings.contains { b in
+                other.allHotkeyBindings.contains { b in
                     !(other.id == target.modeId && b.id == target.editingBindingId)
                         && ModeBinding.hasModifierPrefixConflict(
                             keyCode: code, modifiers: mods,
@@ -124,6 +125,49 @@ enum ModeHotkeyEditing {
                 }
             }
         }
+    }
+
+    /// Global actions remain reserved, except for the action being edited.
+    static func makeReservedConflictCheck(
+        for target: RecordingTarget
+    ) -> (Int?, UInt64?) -> String? {
+        { code, mods in
+            guard let code else { return nil }
+            if !target.isManualInput,
+               ManualInputSettings.matches(keyCode: code, modifiers: mods, modes: ModeStorage().load()) {
+                return L("手动输入", "Manual Input")
+            }
+            let revise = ReviseSettingsStore.shared.load()
+            if revise.enabled, let key = revise.hotkey,
+               ModeBinding.hotkeysAreEquivalent(keyCode: code, modifiers: mods,
+                                               otherKeyCode: key.keyCode, otherModifiers: key.modifiers) {
+                return L("改口", "Revise")
+            }
+            return nil
+        }
+    }
+
+    /// Shared transfer step for a mode or the global manual-input shortcut.
+    /// Preserve sibling bindings and modifier-prefix bindings; remove exact matches only.
+    @discardableResult
+    static func removeConflictingBindings(
+        keyCode code: Int,
+        modifiers mods: UInt64?,
+        from modes: inout [ProcessingMode],
+        excludingModeID: UUID? = nil
+    ) -> Bool {
+        var changed = false
+        for i in modes.indices where modes[i].id != excludingModeID {
+            let oldCount = modes[i].hotkeyBindings.count
+            modes[i].hotkeyBindings.removeAll { b in
+                ModeBinding.hotkeysAreEquivalent(
+                    keyCode: code, modifiers: mods,
+                    otherKeyCode: b.keyCode, otherModifiers: b.modifiers
+                )
+            }
+            changed = changed || modes[i].hotkeyBindings.count != oldCount
+        }
+        return changed
     }
 
     /// Applies a recorded binding to `modes` for the sheet's target: first
@@ -137,16 +181,9 @@ enum ModeHotkeyEditing {
         to modes: inout [ProcessingMode],
         for target: RecordingTarget
     ) {
-        // Global uniqueness: transfer by removing the single conflicting
-        // binding from any other mode.
-        for i in modes.indices where modes[i].id != target.modeId {
-            modes[i].hotkeyBindings.removeAll { b in
-                ModeBinding.hotkeysAreEquivalent(
-                    keyCode: code, modifiers: mods,
-                    otherKeyCode: b.keyCode, otherModifiers: b.modifiers
-                )
-            }
-        }
+        removeConflictingBindings(
+            keyCode: code, modifiers: mods, from: &modes, excludingModeID: target.modeId
+        )
         if let idx = modes.firstIndex(where: { $0.id == target.modeId }) {
             if let editId = target.editingBindingId,
                let bIdx = modes[idx].hotkeyBindings.firstIndex(where: { $0.id == editId }) {

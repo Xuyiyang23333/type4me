@@ -24,7 +24,7 @@ esac
 APP_PATH="${APP_PATH:-$PROJECT_DIR/dist/${APP_NAME}.app}"
 APP_EXECUTABLE="${APP_EXECUTABLE:-Type4Me}"
 APP_ICON_NAME="${APP_ICON_NAME:-AppIcon}"
-APP_VERSION="${APP_VERSION:-2.6.1}"
+APP_VERSION="${APP_VERSION:-2.7.0}"
 APP_BUILD="${APP_BUILD:-1}"
 MIN_SYSTEM_VERSION="${MIN_SYSTEM_VERSION:-14.0}"
 VARIANT="${VARIANT:-cloud}"    # cloud or local
@@ -71,10 +71,10 @@ fi
 
 if [ "$ARCH" = "arm64" ]; then
     echo "Building arm64 release..."
-    swift build -c release --package-path "$PROJECT_DIR" --arch arm64 2>&1 | grep -E "Build complete|Build succeeded|error:|warning:" || true
+    swift build -c release --package-path "$PROJECT_DIR" --arch arm64
 else
     echo "Building universal release (arm64 + x86_64)..."
-    swift build -c release --package-path "$PROJECT_DIR" --arch arm64 --arch x86_64 2>&1 | grep -E "Build complete|Build succeeded|error:|warning:" || true
+    swift build -c release --package-path "$PROJECT_DIR" --arch arm64 --arch x86_64
 fi
 
 BINARY=""

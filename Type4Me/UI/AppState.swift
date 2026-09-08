@@ -260,6 +260,11 @@ struct ProcessingMode: Codable, Identifiable, Equatable, Hashable {
     var isBuiltin: Bool
     var processingLabel: String
     var hotkeyBindings: [HotkeyBinding]
+    /// Retained for migration from the first per-mode manual-input preview.
+    var manualInputHotkey: HotkeyBinding? = nil
+
+    var supportsManualInput: Bool { id != Self.directId && executionKind == .recording && !prompt.isEmpty }
+    var allHotkeyBindings: [HotkeyBinding] { hotkeyBindings }
     /// Per-mode short-text-skip threshold. When the recognized text is shorter
     /// than this many characters, LLM post-processing is skipped. 0 disables it.
     var shortTextExemption: Int
@@ -324,7 +329,7 @@ struct ProcessingMode: Codable, Identifiable, Equatable, Hashable {
     enum CodingKeys: String, CodingKey {
         case id, name, description, prompt, isBuiltin, processingLabel
         case hotkeyBindings, shortTextExemption, executionKind, translationTargetLanguageCode
-        case punctuationMode
+        case punctuationMode, manualInputHotkey
         // Legacy single-hotkey keys, decoded for backward compatibility only.
         case hotkeyCode, hotkeyModifiers, hotkeyStyle
     }
@@ -353,6 +358,7 @@ struct ProcessingMode: Codable, Identifiable, Equatable, Hashable {
             hotkeyBindings = []
         }
 
+        manualInputHotkey = try container.decodeIfPresent(HotkeyBinding.self, forKey: .manualInputHotkey)
         executionKind = try container.decodeIfPresent(ExecutionKind.self, forKey: .executionKind) ?? .recording
         translationTargetLanguageCode = try container.decodeIfPresent(
             String.self,
@@ -376,6 +382,7 @@ struct ProcessingMode: Codable, Identifiable, Equatable, Hashable {
         try container.encode(processingLabel, forKey: .processingLabel)
         try container.encode(shortTextExemption, forKey: .shortTextExemption)
         // Only the new array format is written; legacy keys are intentionally omitted.
+        try container.encodeIfPresent(manualInputHotkey, forKey: .manualInputHotkey)
         try container.encode(hotkeyBindings, forKey: .hotkeyBindings)
         try container.encode(executionKind, forKey: .executionKind)
         try container.encodeIfPresent(
@@ -1472,7 +1479,7 @@ final class AppState {
 
     // MARK: Actions
 
-    func startRecording() {
+    func startRecording(showsPanel: Bool = true) {
         captureRecordingMetadata()
         activityKind = .standard
         latestReviseUndoTicketID = nil
@@ -1485,9 +1492,8 @@ final class AppState {
         processingLabelOverride = nil
         pinsTranscriptPopup = false
         barPhase = .preparing
-        // Notify the controller for every style so a live settings change from
-        // `.hidden` can reveal the indicator immediately.
-        onShowPanel?()
+        // Typed input uses its own key-capable panel while editing.
+        if showsPanel { onShowPanel?() }
     }
 
     func startReviseRecording() {

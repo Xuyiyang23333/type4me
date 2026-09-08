@@ -9,6 +9,7 @@ enum GlobalHotkeyAction: String, Codable, Sendable {
 
 enum HotkeyOwner: Hashable, Sendable {
     case mode(UUID)
+    case manualInput
     case globalAction(GlobalHotkeyAction)
 }
 
@@ -344,6 +345,8 @@ final class HotkeyManager: NSObject {
     private var activeRecordingModeId: UUID?
     private var activeRecordingOwner: HotkeyOwner?
     var onBusyConflict: (() -> Void)?
+    /// An open typed composer consumes mode presses without starting audio.
+    var onManualModePress: ((UUID) -> Bool)?
 
     private enum ModifierGestureState: Equatable {
         case idle
@@ -389,6 +392,8 @@ final class HotkeyManager: NSObject {
     /// When true, ESC key aborts active recording.
     var isESCAbortEnabled = true
 
+    /// Let Escape dismiss an IME candidate before cancelling the typed draft.
+    var passesEscapeToInputMethod: (() -> Bool)?
     /// When true, LLM post-processing is in progress (ESC can also abort this).
     var isProcessing = false
 
@@ -899,6 +904,7 @@ final class HotkeyManager: NSObject {
 
         // ESC key (keyCode 53) - abort active recording or processing
         if isESCAbortEnabled && type == .keyDown && keyCode == 53 {
+            if passesEscapeToInputMethod?() == true { return Unmanaged.passUnretained(event) }
             let hotkeyOwnedSession = activeRecordingBindingId != nil || holdState.values.contains(true)
             // A recording session may also be driven outside the hotkey system
             // (e.g. a `type4me://` URL Scheme command), in which case none of this
@@ -952,6 +958,7 @@ final class HotkeyManager: NSObject {
     /// A toggle binding was pressed. Start when idle, stop when the same owner is recording,
     /// or hand off to cross-mode switching when a different mode is recording.
     private func handleTogglePress(binding: ModeBinding) {
+        if case .mode(let id) = binding.owner, onManualModePress?(id) == true { return }
         if isProcessing {
             binding.onBusyConflict?() ?? onBusyConflict?()
             return
@@ -978,6 +985,7 @@ final class HotkeyManager: NSObject {
 
     /// A hold binding went down.
     private func handleHoldPress(binding: ModeBinding) {
+        if case .mode(let id) = binding.owner, onManualModePress?(id) == true { return }
         if isProcessing {
             binding.onBusyConflict?() ?? onBusyConflict?()
             return

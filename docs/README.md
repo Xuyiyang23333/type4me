@@ -49,6 +49,10 @@
 3. 最后读专项设计；专项文档对明确标注的章节具有更高优先级；
 4. 需要了解旧方案或审查过程时再进入 `archive/`。
 
+## 手动输入
+
+- [统一入口与自适应输入窗](features/manual-input/product-and-development.md)：快捷键、鼠标操作、外观、迁移和验收边界。
+
 ## 3. 当前维护指南
 
 - [本地 Fork 维护](guides/local-fork-maintenance.md)：本地补丁、上游同步和运行时维护说明。

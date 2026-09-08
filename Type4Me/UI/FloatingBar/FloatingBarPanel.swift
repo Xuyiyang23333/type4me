@@ -125,6 +125,18 @@ final class FloatingBarController {
     private var anchorDisplayID: CGDirectDisplayID?
     private var panelGeneration = 0
     private var panelShrinkTask: Task<Void, Never>?
+    private var isSuppressedForManualInput = false
+
+    func setManualInputEditing(_ editing: Bool) {
+        isSuppressedForManualInput = editing
+        if editing {
+            panelGeneration &+= 1
+            cancelPendingPanelShrink()
+            panel.ignoresMouseEvents = true
+            panel.orderOut(nil)
+            anchorDisplayID = nil
+        }
+    }
 
     init(state: AppState) {
         self.state = state
@@ -155,6 +167,7 @@ final class FloatingBarController {
     func updatePanelLayout(_ layout: FloatingBarPanelLayout) {
         let previousLayout = currentLayout
         currentLayout = layout
+        guard !isSuppressedForManualInput else { return }
 
         panel.ignoresMouseEvents = !layout.hasVisibleContent || state.barPhase == .hidden
 
@@ -177,6 +190,7 @@ final class FloatingBarController {
     }
 
     func show() {
+        guard !isSuppressedForManualInput else { return }
         panelGeneration &+= 1
         panel.updateAppearance()
 

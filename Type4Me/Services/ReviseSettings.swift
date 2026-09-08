@@ -149,7 +149,7 @@ final class ReviseSettingsStore: @unchecked Sendable {
                 let defaultCode = ReviseSettings.defaultKeyCode
                 let defaultMods = ReviseSettings.defaultModifiers
                 let hasConflict = existingModes.contains { mode in
-                    mode.hotkeyBindings.contains { hk in
+                    mode.allHotkeyBindings.contains { hk in
                         hk.keyCode == defaultCode && (hk.modifiers ?? 0) == defaultMods
                     }
                 }
