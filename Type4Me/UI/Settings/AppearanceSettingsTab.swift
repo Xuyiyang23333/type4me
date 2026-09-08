@@ -171,12 +171,11 @@ struct AppearanceSettingsTab: View, SettingsCardHelpers {
     private var themeRow: some View {
         settingsOptionRow(
             L("外观主题", "Appearance Theme"),
-            controlWidth: themeControlWidth
+            controlWidth: SettingsControlWidth.inlineSegmented
         ) {
             settingsInlineSegmentedPicker(
                 selection: $theme,
-                options: [RecordingTheme.light, .system, .dark].map { ($0.rawValue, $0.displayName) },
-                segmentWidth: themeSegmentWidth
+                options: RecordingTheme.allCases.map { ($0.rawValue, $0.displayName) }
             )
         }
     }

@@ -146,7 +146,6 @@ struct FloatingBarView<S: FloatingBarState>: View {
     @State private var recordingActionLocked = false
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @ObservedObject private var systemAppearance = RecordingSystemAppearance.shared
     @AppStorage(RecordingTheme.storageKey) private var theme = RecordingTheme.defaultValue
     @AppStorage(RecordingIndicatorStyle.storageKey) private var indicatorStyle = RecordingIndicatorStyle.defaultValue
     @AppStorage(LiveTranscriptDisplayPreference.storageKey) private var showLiveTranscript = LiveTranscriptDisplayPreference.defaultValue
@@ -165,8 +164,9 @@ struct FloatingBarView<S: FloatingBarState>: View {
     // MARK: - Presentation Resolution
 
     private var effectiveTheme: RecordingTheme {
-        (presentationOverride?.theme ?? theme)
-            .resolved(systemIsDark: systemAppearance.isDark)
+        presentationOverride?.theme
+            ?? RecordingTheme(rawValue: theme.rawValue)
+            ?? .dark
     }
 
     private var effectiveIndicatorStyle: RecordingIndicatorStyle {
